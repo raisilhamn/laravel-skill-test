@@ -71,4 +71,13 @@ class PostController extends Controller
 
         return response()->json($post);
     }
+
+    public function destroy(Request $request, Post $post)
+    {
+        abort_if($post->user_id !== $request->user()->id, 403);
+
+        $post->delete();
+
+        return response()->noContent();
+    }
 }
