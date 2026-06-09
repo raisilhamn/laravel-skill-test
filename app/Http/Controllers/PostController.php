@@ -37,4 +37,15 @@ class PostController extends Controller
 
         return response()->json($post, 201);
     }
+
+    public function show(Post $post)
+    {
+        if ($post->is_draft || ! $post->published_at || $post->published_at->isFuture()) {
+            abort(404);
+        }
+
+        $post->load('user');
+
+        return response()->json($post);
+    }
 }
