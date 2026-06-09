@@ -2,79 +2,65 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class PostController extends Controller
 {
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         $posts = Post::with('user')
-            ->where('is_draft', false)
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', now())
+            ->active()
             ->orderByDesc('published_at')
             ->paginate(20);
 
-        return response()->json($posts);
+        return PostResource::collection($posts);
     }
 
-    public function create()
+    public function create(): string
     {
         return 'posts.create';
     }
 
-    public function store(Request $request)
+    public function store(StorePostRequest $request): PostResource
     {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
-            'is_draft' => ['boolean'],
-            'published_at' => ['nullable', 'date'],
-        ]);
+        $this->authorize('create', Post::class);
 
-        $post = $request->user()->posts()->create($validated);
+        $post = $request->user()->posts()->create($request->validated());
 
-        return response()->json($post, 201);
+        return new PostResource($post);
     }
 
-    public function show(Post $post)
+    public function show(Post $post): PostResource
     {
-        if ($post->is_draft || ! $post->published_at || $post->published_at->isFuture()) {
-            abort(404);
-        }
+        $this->authorize('view', $post);
 
         $post->load('user');
 
-        return response()->json($post);
+        return new PostResource($post);
     }
 
-    public function edit(Post $post)
+    public function edit(Post $post): string
     {
-        abort_if($post->user_id !== request()->user()->id, 403);
+        $this->authorize('update', $post);
 
         return 'posts.edit';
     }
 
-    public function update(Request $request, Post $post)
+    public function update(UpdatePostRequest $request, Post $post): PostResource
     {
-        abort_if($post->user_id !== $request->user()->id, 403);
+        $post->update($request->validated());
 
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
-            'is_draft' => ['boolean'],
-            'published_at' => ['nullable', 'date'],
-        ]);
-
-        $post->update($validated);
-
-        return response()->json($post);
+        return new PostResource($post);
     }
 
-    public function destroy(Request $request, Post $post)
+    public function destroy(Post $post): Response
     {
-        abort_if($post->user_id !== $request->user()->id, 403);
+        $this->authorize('delete', $post);
 
         $post->delete();
 
