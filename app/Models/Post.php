@@ -12,30 +12,29 @@ class Post extends Model
     /** @use HasFactory<\Database\Factories\PostFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'title',
-        'content',
-        'is_draft',
-        'published_at',
-    ];
+    protected $fillable = ['title', 'content', 'is_draft', 'published_at'];
 
-    protected function casts(): array
-    {
-        return [
-            'is_draft' => 'boolean',
-            'published_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'published_at' => 'datetime',
+        'is_draft' => 'boolean',
+    ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function scopeActive(Builder $query): Builder
+    public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_draft', false)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    public function isPublished(): bool
+    {
+        return ! $this->is_draft
+            && ! is_null($this->published_at)
+            && $this->published_at->isPast();
     }
 }

@@ -6,61 +6,58 @@ use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
-    public function index(): AnonymousResourceCollection
+    public function index()
     {
-        $posts = Post::with('user')
-            ->active()
-            ->orderByDesc('published_at')
+        $posts = Post::published()
+            ->with('user')
+            ->latest('published_at')
             ->paginate(20);
 
         return PostResource::collection($posts);
     }
 
-    public function create(): string
+    public function create()
     {
         return 'posts.create';
     }
 
-    public function store(StorePostRequest $request): PostResource
+    public function store(StorePostRequest $request)
     {
-        $this->authorize('create', Post::class);
-
         $post = $request->user()->posts()->create($request->validated());
 
-        return new PostResource($post);
+        return (new PostResource($post->load('user')))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    public function show(Post $post): PostResource
+    public function show(Post $post)
     {
-        $this->authorize('view', $post);
+        abort_if(! $post->isPublished(), 404);
 
-        $post->load('user');
-
-        return new PostResource($post);
+        return new PostResource($post->load('user'));
     }
 
-    public function edit(Post $post): string
+    public function edit(Post $post)
     {
-        $this->authorize('update', $post);
+        Gate::authorize('update', $post);
 
         return 'posts.edit';
     }
 
-    public function update(UpdatePostRequest $request, Post $post): PostResource
+    public function update(UpdatePostRequest $request, Post $post)
     {
         $post->update($request->validated());
 
-        return new PostResource($post);
+        return new PostResource($post->load('user'));
     }
 
-    public function destroy(Post $post): Response
+    public function destroy(Post $post)
     {
-        $this->authorize('delete', $post);
+        Gate::authorize('delete', $post);
 
         $post->delete();
 
