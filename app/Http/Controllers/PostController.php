@@ -23,4 +23,18 @@ class PostController extends Controller
     {
         return 'posts.create';
     }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['required', 'string'],
+            'is_draft' => ['boolean'],
+            'published_at' => ['nullable', 'date'],
+        ]);
+
+        $post = $request->user()->posts()->create($validated);
+
+        return response()->json($post, 201);
+    }
 }
