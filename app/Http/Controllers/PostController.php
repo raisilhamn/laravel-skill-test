@@ -55,4 +55,20 @@ class PostController extends Controller
 
         return 'posts.edit';
     }
+
+    public function update(Request $request, Post $post)
+    {
+        abort_if($post->user_id !== $request->user()->id, 403);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['required', 'string'],
+            'is_draft' => ['boolean'],
+            'published_at' => ['nullable', 'date'],
+        ]);
+
+        $post->update($validated);
+
+        return response()->json($post);
+    }
 }
