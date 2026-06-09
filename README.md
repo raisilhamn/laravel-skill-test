@@ -86,3 +86,54 @@ Sample users and posts are provided.
 ```bash
 php artisan db:seed
 ```
+
+## Test Results
+
+```
+  PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+  PASS  Tests\Feature\Auth\AuthenticationTest
+  ✓ login screen can be rendered
+  ✓ users can authenticate using the login screen
+  ✓ users can not authenticate with invalid password
+  ✓ users can logout
+
+  PASS  Tests\Feature\Auth\EmailVerificationTest
+  ✓ email verification screen can be rendered
+  ✓ email can be verified
+  ✓ email is not verified with invalid hash
+
+  PASS  Tests\Feature\Auth\PasswordConfirmationTest
+  ✓ confirm password screen can be rendered
+  ✓ password can be confirmed
+  ✓ password is not confirmed with invalid password
+
+  PASS  Tests\Feature\Auth\PasswordResetTest
+  ✓ reset password link screen can be rendered
+  ✓ reset password link can be requested
+  ✓ reset password screen can be rendered
+  ✓ password can be reset with valid token
+
+  PASS  Tests\Feature\Auth\RegistrationTest
+  ✓ registration screen can be rendered
+  ✓ new users can register
+
+  PASS  Tests\Feature\DashboardTest
+  ✓ guests are redirected to the login page
+  ✓ authenticated users can visit the dashboard
+
+  PASS  Tests\Feature\Settings\PasswordUpdateTest
+  ✓ password can be updated
+  ✓ correct password must be provided to update password
+
+  PASS  Tests\Feature\Settings\ProfileUpdateTest
+  ✓ profile page is displayed
+  ✓ profile information can be updated
+  ✓ email verification status is unchanged when the email address is unchanged
+  ✓ user can delete their account
+  ✓ correct password must be provided to delete account
+
+  Tests:  26 passed (63 assertions)
+  Duration: 1.60s
+```
